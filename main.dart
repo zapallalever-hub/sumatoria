@@ -1,25 +1,17 @@
-import 'dart:io';
+from flask import Flask, request
 
-void main() async {
-  final port = int.parse(Platform.environment['PORT'] ?? '8080');
+app = Flask(__name__)
 
-  final server = await HttpServer.bind(InternetAddress.anyIPv4, port);
+@app.route('/')
+def suma():
+    try:
+        n = int(request.args.get('n', '0'))
+        if n < 1:
+            return 'Por favor ingresa un número entero positivo (n>=1)'
+        suma = n * (n + 1) // 2
+        return f'La suma de 1 a {n} es: {suma}'
+    except ValueError:
+        return 'Parámetro inválido'
 
-  print('Servidor corriendo en puerto $port');
-
-  await for (HttpRequest request in server) {
-    final query = request.uri.queryParameters;
-    final n = int.tryParse(query['n'] ?? '');
-
-    if (n == null || n < 1) {
-      request.response
-        ..statusCode = 400
-        ..write('Parámetro "n" inválido');
-    } else {
-      final suma = n * (n + 1) ~/ 2;
-      request.response.write('La suma de 1 a $n es: $suma');
-    }
-
-    await request.response.close();
-  }
-}
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
